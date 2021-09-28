@@ -6,6 +6,9 @@ import './bootstrap.min.css'
 import './index.css'
 import App from './App'
 import * as serviceWorker from './serviceWorker'
+import axios from 'axios'
+
+axios.defaults.baseURL = 'https://e-material-shop-app.herokuapp.com'
 
 ReactDOM.render(
   <Provider store={store}>
