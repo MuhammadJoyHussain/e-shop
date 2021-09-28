@@ -13,6 +13,7 @@ node_modules/
 build
 public/images
 
+
 # misc
 .DS_Store
 .env
