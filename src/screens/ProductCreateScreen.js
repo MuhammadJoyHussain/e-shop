@@ -87,7 +87,7 @@ const ProductEditScreen = ({ history }) => {
               <Form.Label>Price</Form.Label>
               <Form.Control
                 name='price'
-                type='number'
+                type='text'
                 placeholder='Enter price'
                 onChange={onFileChange}
               ></Form.Control>
