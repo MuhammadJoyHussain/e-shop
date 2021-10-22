@@ -11,6 +11,7 @@ import {
   createProductReview,
 } from '../actions/productActions'
 import { PRODUCT_CREATE_REVIEW_RESET } from '../constants/productConstants'
+import imageUrlParser from './../utils/imageUrlParser'
 
 const ProductScreen = ({ history, match }) => {
   const [qty, setQty] = useState(1)
@@ -71,7 +72,7 @@ const ProductScreen = ({ history, match }) => {
           <Meta title={product.name} />
           <Row>
             <Col md={6}>
-              <Image src={product.image} alt={product.name} fluid />
+              <Image src={imageUrlParser(product ? product.image : '')} alt={product.name} fluid />
             </Col>
             <Col md={3}>
               <ListGroup variant='flush'>

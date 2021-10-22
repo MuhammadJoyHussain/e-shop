@@ -5,90 +5,56 @@ import { useDispatch, useSelector } from 'react-redux'
 import Message from '../components/Message'
 import Loader from '../components/Loader'
 import FormContainer from '../components/FormContainer'
-import { listProductDetails, updateProduct } from '../actions/productActions'
-import { PRODUCT_UPDATE_RESET } from '../constants/productConstants'
-import instance from '../services/httpService'
+import { createProduct } from '../actions/productActions'
+import { PRODUCT_CREATE_RESET } from '../constants/productConstants'
 
-const ProductEditScreen = ({ match, history }) => {
-  const productId = match.params.id
-
-  const [name, setName] = useState('')
-  const [price, setPrice] = useState(0)
-  const [image, setImage] = useState('')
-  const [brand, setBrand] = useState('')
-  const [category, setCategory] = useState('')
-  const [countInStock, setCountInStock] = useState(0)
-  const [description, setDescription] = useState('')
-  const [uploading, setUploading] = useState(false)
+const ProductEditScreen = ({ history }) => {
+  const [formData, setFormData] = useState()
+  const [file, setFile] = useState('')
 
   const dispatch = useDispatch()
 
   const productDetails = useSelector((state) => state.productDetails)
-  const { loading, error, product } = productDetails
+  const { loading, error } = productDetails
 
-  const productUpdate = useSelector((state) => state.productUpdate)
-  const {
-    loading: loadingUpdate,
-    error: errorUpdate,
-    success: successUpdate,
-  } = productUpdate
+  const productCreate = useSelector((state) => state.productCreate)
+  const { loading: loadingCreate, error: errorCreate, success: successCreate } = productCreate
+
+  const userLogin = useSelector((state) => state.userLogin)
+  const { userInfo } = userLogin
 
   useEffect(() => {
-    if (successUpdate) {
-      dispatch({ type: PRODUCT_UPDATE_RESET })
+    if (successCreate) {
+      dispatch({ type: PRODUCT_CREATE_RESET })
       history.push('/admin/productlist')
-    } else {
-      if (!product.name || product._id !== productId) {
-        dispatch(listProductDetails(productId))
-      } else {
-        setName(product.name)
-        setPrice(product.price)
-        setImage(product.image)
-        setBrand(product.brand)
-        setCategory(product.category)
-        setCountInStock(product.countInStock)
-        setDescription(product.description)
+
+      if (!userInfo || !userInfo.isAdmin) {
+        history.push('/login')
       }
     }
-  }, [dispatch, history, productId, product, successUpdate])
+  }, [dispatch, history, successCreate, userInfo])
 
-  const uploadFileHandler = async (e) => {
-    const file = e.target.files[0]
-    const formData = new FormData()
-    formData.append('image', file)
-    setUploading(true)
+  const uploadFileHandler = (e) => {
+    setFile(e.target.files[0])
+  }
 
-    try {
-      const config = {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      }
-
-      const { data } = await instance.post('/api/upload', formData, config)
-
-      setImage(data)
-      console.log(data);
-      setUploading(false)
-    } catch (error) {
-      console.error(error)
-      setUploading(false)
-    }
+  const onFileChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value })
   }
 
   const submitHandler = (e) => {
     e.preventDefault()
+
+    const newFormData = new FormData();
+    newFormData.append('name', formData.name);
+    newFormData.append('price', formData.price);
+    newFormData.append('image', file);
+    newFormData.append('brand', formData.brand);
+    newFormData.append('category', formData.category);
+    newFormData.append('description', formData.description);
+    newFormData.append('countInStock', formData.countInStock);
     dispatch(
-      updateProduct({
-        _id: productId,
-        name,
-        price,
-        image,
-        brand,
-        category,
-        description,
-        countInStock,
-      })
+      createProduct(newFormData)
     )
   }
 
@@ -98,42 +64,42 @@ const ProductEditScreen = ({ match, history }) => {
         Go Back
       </Link>
       <FormContainer>
-        <h1>Edit Product</h1>
-        {loadingUpdate && <Loader />}
-        {errorUpdate && <Message variant='danger'>{errorUpdate}</Message>}
+        <h1>Create Product</h1>
+        {loadingCreate && <Loader />}
+        {errorCreate && <Message variant='danger'>{errorCreate}</Message>}
         {loading ? (
           <Loader />
         ) : error ? (
           <Message variant='danger'>{error}</Message>
         ) : (
-          <Form onSubmit={submitHandler}>
+          <Form onSubmit={submitHandler} encType="multipart/form-data">
             <Form.Group controlId='name'>
               <Form.Label>Name</Form.Label>
               <Form.Control
+                name='name'
                 type='name'
                 placeholder='Enter name'
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={onFileChange}
               ></Form.Control>
             </Form.Group>
 
             <Form.Group controlId='price'>
               <Form.Label>Price</Form.Label>
               <Form.Control
+                name='price'
                 type='number'
                 placeholder='Enter price'
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
+                onChange={onFileChange}
               ></Form.Control>
             </Form.Group>
 
             <Form.Group controlId='image'>
               <Form.Label>Image</Form.Label>
               <Form.Control
+                name='image'
                 type='text'
                 placeholder='Enter image url'
-                value={image}
-                onChange={(e) => setImage(e.target.value)}
+                value={file.name}
               ></Form.Control>
               <Form.File
                 id='image-file'
@@ -141,51 +107,50 @@ const ProductEditScreen = ({ match, history }) => {
                 custom
                 onChange={uploadFileHandler}
               ></Form.File>
-              {uploading && <Loader />}
             </Form.Group>
 
             <Form.Group controlId='brand'>
               <Form.Label>Brand</Form.Label>
               <Form.Control
+                name='brand'
                 type='text'
                 placeholder='Enter brand'
-                value={brand}
-                onChange={(e) => setBrand(e.target.value)}
+                onChange={onFileChange}
               ></Form.Control>
             </Form.Group>
 
             <Form.Group controlId='countInStock'>
               <Form.Label>Count In Stock</Form.Label>
               <Form.Control
+                name='countInStock'
                 type='number'
                 placeholder='Enter countInStock'
-                value={countInStock}
-                onChange={(e) => setCountInStock(e.target.value)}
+                onChange={onFileChange}
               ></Form.Control>
             </Form.Group>
 
             <Form.Group controlId='category'>
               <Form.Label>Category</Form.Label>
               <Form.Control
+                name='category'
                 type='text'
                 placeholder='Enter category'
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
+                onChange={onFileChange}
               ></Form.Control>
             </Form.Group>
 
             <Form.Group controlId='description'>
               <Form.Label>Description</Form.Label>
               <Form.Control
+                name='description'
                 type='text'
                 placeholder='Enter description'
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                onChange={onFileChange}
               ></Form.Control>
             </Form.Group>
 
             <Button type='submit' variant='primary'>
-              Update
+              Create
             </Button>
           </Form>
         )}

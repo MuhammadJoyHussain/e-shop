@@ -21,8 +21,8 @@ import {
   PRODUCT_TOP_SUCCESS,
   PRODUCT_TOP_FAIL,
 } from '../constants/productConstants'
-import instance from '../services/httpService'
 import { logout } from './userActions'
+import instance from './../services/httpService'
 
 export const listProducts = (keyword = '', pageNumber = '') => async (
   dispatch
@@ -106,7 +106,7 @@ export const deleteProduct = (id) => async (dispatch, getState) => {
   }
 }
 
-export const createProduct = () => async (dispatch, getState) => {
+export const createProduct = (product) => async (dispatch, getState) => {
   try {
     dispatch({
       type: PRODUCT_CREATE_REQUEST,
@@ -118,11 +118,12 @@ export const createProduct = () => async (dispatch, getState) => {
 
     const config = {
       headers: {
+        'Content-Type': 'application/json',
         Authorization: `Bearer ${userInfo.token}`,
       },
     }
 
-    const { data } = await instance.post(`/api/products`, {}, config)
+    const { data } = await instance.post(`/api/products`, product, config)
 
     dispatch({
       type: PRODUCT_CREATE_SUCCESS,
